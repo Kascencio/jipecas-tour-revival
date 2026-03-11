@@ -10,19 +10,11 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <div id="inicio">
-        <HeroSection />
-      </div>
-      <div id="destinations">
-        <DestinationsSection />
-      </div>
+      <HeroSection />
+      <DestinationsSection />
       <AboutSection />
-      <div id="transfers">
-        <TransfersSection />
-      </div>
-      <div id="contact">
-        <ContactSection />
-      </div>
+      <TransfersSection />
+      <ContactSection />
       <footer className="bg-foreground text-background/60 text-center py-6 font-body text-sm">
         © {new Date().getFullYear()} Jipeca's Tours and Transportation. All rights reserved.
       </footer>
