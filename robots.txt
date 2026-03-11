@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+
+# Legacy/template routes removed from SEO strategy
+Disallow: /blog/
+Disallow: /Home.html
+Disallow: /About.html
+Disallow: /Portfolio-Page.html
