@@ -53,8 +53,22 @@ document.addEventListener("DOMContentLoaded", function () {
       "transport.services": "Servicios",
       "transport.book": "Reserva tu traslado",
       "contact.hero.title": "Contactanos",
-      "contact.hero.desc": "Comunicacion directa, sin formularios y sin esperas",
-      "contact.hero.cta": "Contactanos"
+      "contact.hero.desc": "Comunicacion directa por WhatsApp o formulario",
+      "contact.hero.cta": "Contactanos",
+      "contact.subtitle": "Comunicacion directa por WhatsApp o dejanos tu mensaje aqui.",
+      "contact.form.title": "Envia tu mensaje",
+      "contact.form.subtitle": "Respondemos en menos de 24 horas.",
+      "contact.form.name": "Nombre completo",
+      "contact.form.email": "Correo electronico",
+      "contact.form.phone": "Telefono (opcional)",
+      "contact.form.service": "Servicio de interes",
+      "contact.form.service.none": "Selecciona una opcion",
+      "contact.form.service.transport": "Transporte privado",
+      "contact.form.service.tours": "Tours",
+      "contact.form.service.cenotes": "Cenotes",
+      "contact.form.service.other": "Otro",
+      "contact.form.message": "Mensaje",
+      "contact.form.submit": "Enviar mensaje"
     },
     en: {
       "lang.es": "ES",
@@ -107,8 +121,22 @@ document.addEventListener("DOMContentLoaded", function () {
       "transport.services": "Services",
       "transport.book": "Book your transfer",
       "contact.hero.title": "Contact us",
-      "contact.hero.desc": "Direct communication, no forms and no waiting times",
-      "contact.hero.cta": "Contact us"
+      "contact.hero.desc": "Direct communication through WhatsApp or contact form",
+      "contact.hero.cta": "Contact us",
+      "contact.subtitle": "Direct communication through WhatsApp or leave us your message here.",
+      "contact.form.title": "Send your message",
+      "contact.form.subtitle": "We reply within 24 hours.",
+      "contact.form.name": "Full name",
+      "contact.form.email": "Email address",
+      "contact.form.phone": "Phone (optional)",
+      "contact.form.service": "Service of interest",
+      "contact.form.service.none": "Select an option",
+      "contact.form.service.transport": "Private transportation",
+      "contact.form.service.tours": "Tours",
+      "contact.form.service.cenotes": "Cenotes",
+      "contact.form.service.other": "Other",
+      "contact.form.message": "Message",
+      "contact.form.submit": "Send message"
     }
   };
 
@@ -170,6 +198,7 @@ document.addEventListener("DOMContentLoaded", function () {
     ".detail-card",
     ".service-card",
     ".contact-card",
+    ".contact-form-wrap",
     ".about-block",
     ".transfers-image"
   ].forEach(function (selector) {
@@ -301,6 +330,95 @@ document.addEventListener("DOMContentLoaded", function () {
       if (e.key === 'Escape') closeLightbox();
       if (e.key === 'ArrowLeft') showPrev();
       if (e.key === 'ArrowRight') showNext();
+    });
+  }
+
+  var contactForm = document.getElementById("contact-form");
+  if (contactForm) {
+    var submitButton = contactForm.querySelector("button[type='submit']");
+    var statusMessage = document.getElementById("contact-form-status");
+
+    var statusText = {
+      es: {
+        sending: "Enviando mensaje...",
+        success: "Gracias. Tu mensaje fue enviado correctamente.",
+        invalid: "Revisa los campos obligatorios antes de enviar.",
+        error: "No se pudo enviar. Intenta de nuevo en unos minutos."
+      },
+      en: {
+        sending: "Sending message...",
+        success: "Thanks. Your message was sent successfully.",
+        invalid: "Please review required fields before sending.",
+        error: "Could not send the message. Please try again in a few minutes."
+      }
+    };
+
+    function setStatus(type, key) {
+      var lang = document.body.getAttribute("data-lang") || "es";
+      var dict = statusText[lang] || statusText.es;
+
+      if (!statusMessage) {
+        return;
+      }
+
+      statusMessage.textContent = dict[key] || "";
+      statusMessage.classList.remove("is-error", "is-success");
+
+      if (type === "error") {
+        statusMessage.classList.add("is-error");
+      }
+
+      if (type === "success") {
+        statusMessage.classList.add("is-success");
+      }
+    }
+
+    contactForm.addEventListener("submit", async function (event) {
+      event.preventDefault();
+
+      if (!contactForm.checkValidity()) {
+        contactForm.reportValidity();
+        setStatus("error", "invalid");
+        return;
+      }
+
+      var formData = new FormData(contactForm);
+      var payload = {
+        name: String(formData.get("name") || "").trim(),
+        email: String(formData.get("email") || "").trim(),
+        phone: String(formData.get("phone") || "").trim(),
+        service: String(formData.get("service") || "").trim(),
+        message: String(formData.get("message") || "").trim(),
+        company: String(formData.get("company") || "").trim()
+      };
+
+      if (submitButton) {
+        submitButton.disabled = true;
+      }
+      setStatus("neutral", "sending");
+
+      try {
+        var response = await fetch("/api/contact", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+          throw new Error("Request failed");
+        }
+
+        contactForm.reset();
+        setStatus("success", "success");
+      } catch (error) {
+        setStatus("error", "error");
+      } finally {
+        if (submitButton) {
+          submitButton.disabled = false;
+        }
+      }
     });
   }
 });
