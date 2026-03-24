@@ -13,6 +13,8 @@ exports.handler = async function (event) {
     var apiKey = process.env.RESEND_API_KEY;
     var fromEmail = process.env.RESEND_FROM;
     var toEmail = process.env.RESEND_TO || "all4surerivieramaya@gmail.com";
+    var templateId = process.env.RESEND_TEMPLATE_ID || "contact-form-submission";
+    var subjectLine = process.env.RESEND_SUBJECT || "Nuevo mensaje de contacto | All4Sure";
 
     if (!apiKey || !fromEmail) {
       return {
@@ -63,31 +65,11 @@ exports.handler = async function (event) {
       };
     }
 
-    var clean = function (value) {
-      return String(value || "")
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/\"/g, "&quot;")
-        .replace(/'/g, "&#39;");
-    };
-
-    var safeName = clean(name);
-    var safeEmail = clean(email);
-    var safePhone = clean(phone || "No proporcionado");
-    var safeService = clean(service || "No especificado");
-    var safeMessage = clean(message).replace(/\n/g, "<br>");
-
-    var subject = "Nuevo mensaje desde All4Sure: " + name;
-
-    var html =
-      "<h2>Nuevo contacto desde all4surerivieramaya.com</h2>" +
-      "<p><strong>Nombre:</strong> " + safeName + "</p>" +
-      "<p><strong>Email:</strong> " + safeEmail + "</p>" +
-      "<p><strong>Telefono:</strong> " + safePhone + "</p>" +
-      "<p><strong>Servicio:</strong> " + safeService + "</p>" +
-      "<p><strong>Mensaje:</strong></p>" +
-      "<p>" + safeMessage + "</p>";
+    var submittedAt = new Date().toLocaleString("es-MX", {
+      dateStyle: "medium",
+      timeStyle: "short",
+      timeZone: "America/Cancun"
+    });
 
     var resendResponse = await fetch("https://api.resend.com/emails", {
       method: "POST",
@@ -99,8 +81,18 @@ exports.handler = async function (event) {
         from: fromEmail,
         to: [toEmail],
         reply_to: email,
-        subject: subject,
-        html: html
+        subject: subjectLine,
+        template: {
+          id: templateId,
+          variables: {
+            name: name,
+            email: email,
+            phone: phone || "No proporcionado",
+            service: service || "No especificado",
+            message: message,
+            submitted_at: submittedAt
+          }
+        }
       })
     });
 
